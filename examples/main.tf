@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "mongodb" {
-  host = "mongo"  # when running local tests, you might have to update this to the ``mongo`` container IP
+  host = "localhost"  # when running local tests, you might have to update this to the ``mongo`` container IP
   port = "27017"
   username = "root"
   password = "root"
@@ -58,12 +58,12 @@ resource "mongodb_db_role" "role_2" {
 }
 resource "mongodb_db_role" "role4" {
   depends_on = [mongodb_db_role.role]
-  database = "exemple"
+  database = "example"
   name = "new_role4"
 }
 
 resource "mongodb_db_user" "user" {
-  auth_database = "exemple"
+  auth_database = "example"
   name = "monta"
   password = "monta"
   role {
