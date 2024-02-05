@@ -158,17 +158,17 @@ func resourceDatabaseRoleUpdate(ctx context.Context, data *schema.ResourceData, 
 
 	roleMapErr := mapstructure.Decode(roles, &roleList)
 	if roleMapErr != nil {
-		return diag.Errorf("Error decoding map : %s ", roleMapErr)
+		return diag.Errorf("Error decoding map : %s ", roleMapErr.Error())
 	}
 	privMapErr := mapstructure.Decode(privilege, &privileges)
 	if privMapErr != nil {
-		return diag.Errorf("Error decoding map : %s ", privMapErr)
+		return diag.Errorf("Error decoding map : %s ", privMapErr.Error())
 	}
 
 	updateError := updateRole(client, role, roleList, privileges, database)
 
 	if updateError != nil {
-		return diag.Errorf("Could not update the role  :  %s ", err)
+		return diag.Errorf("Could not update the role  :  %s ", updateError.Error())
 	}
 	str := database + "." + role
 	encoded := base64.StdEncoding.EncodeToString([]byte(str))
