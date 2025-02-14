@@ -2,11 +2,11 @@ package mongodb
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"regexp"
-	"time"
 )
 
 func Provider() *schema.Provider {
@@ -88,6 +88,23 @@ func Provider() *schema.Provider {
 				}, nil),
 				ValidateDiagFunc: validateDiagFunc(validation.StringMatch(regexp.MustCompile("^socks5h?://.*:\\d+$"), "The proxy URL is not a valid socks url.")),
 			},
+			"timeout": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     10000,
+				Description: "Specifies the number of milliseconds that a single operation run on the Client can take before returning a timeout error. Operations honor this setting only if there is no deadline on the operation Context.",
+			},
+			"connect_timeout": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     30000,
+				Description: "Specifies the time in milliseconds to attempt a connection before timing out.",
+			},
+			"server_selection_timeout": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Specifies the time in milliseconds to wait to find an available, suitable server to execute an operation.",
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"mongodb_db_user": resourceDatabaseUser(),
@@ -98,32 +115,27 @@ func Provider() *schema.Provider {
 	}
 }
 
-type MongoDatabaseConfiguration struct {
-	Config          *ClientConfig
-	MaxConnLifetime time.Duration
-}
-
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	clientConfig := ClientConfig{
-		Host:               d.Get("host").(string),
-		Port:               d.Get("port").(string),
-		Username:           d.Get("username").(string),
-		Password:           d.Get("password").(string),
-		DB:                 d.Get("auth_database").(string),
-		Ssl:                d.Get("ssl").(bool),
-		ReplicaSet:         d.Get("replica_set").(string),
-		Certificate:        d.Get("certificate").(string),
-		InsecureSkipVerify: d.Get("insecure_skip_verify").(bool),
-		Direct:             d.Get("direct").(bool),
-		RetryWrites:        d.Get("retrywrites").(bool),
-		Proxy:              d.Get("proxy").(string),
+		Host:                   d.Get("host").(string),
+		Port:                   d.Get("port").(string),
+		Username:               d.Get("username").(string),
+		Password:               d.Get("password").(string),
+		DB:                     d.Get("auth_database").(string),
+		Ssl:                    d.Get("ssl").(bool),
+		ReplicaSet:             d.Get("replica_set").(string),
+		Certificate:            d.Get("certificate").(string),
+		InsecureSkipVerify:     d.Get("insecure_skip_verify").(bool),
+		Direct:                 d.Get("direct").(bool),
+		RetryWrites:            d.Get("retrywrites").(bool),
+		Proxy:                  d.Get("proxy").(string),
+		Timeout:                d.Get("timeout").(int),
+		ConnectTimeout:         d.Get("connect_timeout").(int),
+		ServerSelectionTimeout: d.Get("server_selection_timeout").(int),
 	}
 
-	return &MongoDatabaseConfiguration{
-		Config:          &clientConfig,
-		MaxConnLifetime: 10,
-	}, diags
+	return &clientConfig, diags
 
 }
