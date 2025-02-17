@@ -17,18 +17,21 @@ import (
 )
 
 type ClientConfig struct {
-	Host               string
-	Port               string
-	Username           string
-	Password           string
-	DB                 string
-	Ssl                bool
-	InsecureSkipVerify bool
-	ReplicaSet         string
-	RetryWrites        bool
-	Certificate        string
-	Direct             bool
-	Proxy              string
+	Host                   string
+	Port                   string
+	Username               string
+	Password               string
+	DB                     string
+	Ssl                    bool
+	InsecureSkipVerify     bool
+	ReplicaSet             string
+	RetryWrites            bool
+	Certificate            string
+	Direct                 bool
+	Proxy                  string
+	Timeout                int
+	ConnectTimeout         int
+	ServerSelectionTimeout int
 }
 type DbUser struct {
 	Name     string `json:"name"`
@@ -109,6 +112,13 @@ func (c *ClientConfig) MongoClient() (*mongo.Client, error) {
 
 	if c.Direct {
 		arguments = addArgs(arguments, "connect="+"direct")
+	}
+
+	arguments = addArgs(arguments, "timeoutMS="+strconv.Itoa(c.Timeout))
+	arguments = addArgs(arguments, "connectTimeoutMS="+strconv.Itoa(c.ConnectTimeout))
+
+	if c.ServerSelectionTimeout != 0 {
+		arguments = addArgs(arguments, "serverSelectionTimeoutMS="+strconv.Itoa(c.ServerSelectionTimeout))
 	}
 
 	var uri = "mongodb://" + c.Host + ":" + c.Port + arguments
@@ -254,13 +264,13 @@ func updateRole(client *mongo.Client, role string, roles []Role, privilege []Pri
 
 }
 
-func MongoClientInit(conf *MongoDatabaseConfiguration) (*mongo.Client, error) {
+func MongoClientInit(conf *ClientConfig) (*mongo.Client, error) {
 
-	client, err := conf.Config.MongoClient()
+	client, err := conf.MongoClient()
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), conf.MaxConnLifetime*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.Timeout+conf.ConnectTimeout)*time.Millisecond)
 	defer cancel()
 	err = client.Connect(ctx)
 	if err != nil {

@@ -106,4 +106,6 @@ arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
 * `retrywrites   ` - (Optional) `default = true `Retryable writes allow MongoDB drivers to automatically retry certain write operations a single time if they encounter network errors, or if they cannot find a healthy primary in the replica sets or sharded cluster.
 * `direct   ` - (Optional) `default = false ` determine if a direct connection is needed..
 * `proxy   ` - (Optional) `default = "" ` determine if connecting via a SOCKS5 proxy is needed, it can also be sourced from the `ALL_PROXY` or `all_proxy` environment variable.
-
+* `timeout` - (Optional) `default = 10000 ` Specifies the number of milliseconds that a single operation run on the Client can take before returning a timeout error.
+* `connect_timeout` - (Optional) `default = 30000 ` Specifies the time in milliseconds to attempt a connection before timing out.
+* `server_selection_timeout` - (Optional) Specifies the time in milliseconds to wait to find an available, suitable server to execute an operation.
