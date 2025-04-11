@@ -69,8 +69,8 @@ func resourceDatabaseUserDelete(ctx context.Context, data *schema.ResourceData, 
 		return diag.Errorf("ID mismatch %s", errEncoding)
 	}
 
-	// StateID is a concatenation of database and username. We only use the username here.
-	splitId := strings.Split(string(id), ".")
+	// StateID is a concatenation of database and username (database.user.name). We only use the username here.
+	splitId := strings.SplitN(string(id), ".", 2)
 	userName := splitId[1]
 
 	adminDB := client.Database(database)
