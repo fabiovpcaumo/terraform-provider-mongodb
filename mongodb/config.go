@@ -197,7 +197,7 @@ func createUser(client *mongo.Client, user DbUser, roles []Role, database string
 	if user.Password != "" {
 	    args = append(args, bson.E{Key: "pwd", Value: user.Password})
 	}
-    if user.Mechanisms != nil {
+    if len(user.Mechanisms) != 0 {
 	    args = append(args, bson.E{Key: "mechanisms", Value: user.Mechanisms})
 	}
     if len(roles) != 0 {
