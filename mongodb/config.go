@@ -133,7 +133,7 @@ func (c *ClientConfig) MongoClient() (*mongo.Client, error) {
 	arguments = addArgs(arguments, "maxPoolSize="+strconv.Itoa(c.MaxPoolSize))
 	arguments = addArgs(arguments, "maxConnecting="+strconv.Itoa(c.MaxConnecting))
 
-	var uri = ""
+	var uri string
 
 	if c.ReplicaSetHosts != "" {
 		arguments = addArgs(arguments, "readPreference="+c.ReadPreference)
