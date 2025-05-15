@@ -56,11 +56,8 @@ func resourceDatabaseUser() *schema.Resource {
 }
 
 func resourceDatabaseUserDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var stateId = data.State().ID
 	var database = data.Get("auth_database").(string)
 
@@ -84,11 +81,8 @@ func resourceDatabaseUserDelete(ctx context.Context, data *schema.ResourceData, 
 }
 
 func resourceDatabaseUserUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var stateId = data.State().ID
 	_, errEncoding := base64.StdEncoding.DecodeString(stateId)
 	if errEncoding != nil {
@@ -127,11 +121,8 @@ func resourceDatabaseUserUpdate(ctx context.Context, data *schema.ResourceData, 
 }
 
 func resourceDatabaseUserRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	stateID := data.State().ID
 	username, database, err := resourceDatabaseUserParseId(stateID)
 	if err != nil {
@@ -169,11 +160,8 @@ func resourceDatabaseUserRead(ctx context.Context, data *schema.ResourceData, i 
 }
 
 func resourceDatabaseUserCreate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var database = data.Get("auth_database").(string)
 	var userName = data.Get("name").(string)
 	var userPassword = data.Get("password").(string)

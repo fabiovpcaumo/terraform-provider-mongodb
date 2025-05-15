@@ -25,6 +25,7 @@ type ClientConfig struct {
 	Ssl                    bool
 	InsecureSkipVerify     bool
 	ReplicaSet             string
+	ReplicaSetHosts        string
 	RetryWrites            bool
 	Certificate            string
 	Direct                 bool
@@ -32,6 +33,9 @@ type ClientConfig struct {
 	Timeout                int
 	ConnectTimeout         int
 	ServerSelectionTimeout int
+	ReadPreference         string
+	MaxPoolSize            int
+	MaxConnecting          int
 }
 type DbUser struct {
 	Name     string `json:"name"`
@@ -86,6 +90,11 @@ type SingleResultGetRole struct {
 	} `json:"roles"`
 }
 
+type MongoProviderMeta struct {
+	Config *ClientConfig
+	Client *mongo.Client
+}
+
 func addArgs(arguments string, newArg string) string {
 	if arguments != "" {
 		return arguments + "&" + newArg
@@ -111,7 +120,7 @@ func (c *ClientConfig) MongoClient() (*mongo.Client, error) {
 	}
 
 	if c.Direct {
-		arguments = addArgs(arguments, "connect="+"direct")
+		arguments = addArgs(arguments, "connect=direct")
 	}
 
 	arguments = addArgs(arguments, "timeoutMS="+strconv.Itoa(c.Timeout))
@@ -121,7 +130,17 @@ func (c *ClientConfig) MongoClient() (*mongo.Client, error) {
 		arguments = addArgs(arguments, "serverSelectionTimeoutMS="+strconv.Itoa(c.ServerSelectionTimeout))
 	}
 
-	var uri = "mongodb://" + c.Host + ":" + c.Port + arguments
+	arguments = addArgs(arguments, "maxPoolSize="+strconv.Itoa(c.MaxPoolSize))
+	arguments = addArgs(arguments, "maxConnecting="+strconv.Itoa(c.MaxConnecting))
+
+	var uri = ""
+
+	if c.ReplicaSetHosts != "" {
+		arguments = addArgs(arguments, "readPreference="+c.ReadPreference)
+		uri = "mongodb://" + c.ReplicaSetHosts + arguments
+	} else {
+		uri = "mongodb://" + c.Host + ":" + c.Port + arguments
+	}
 
 	dialer, dialerErr := proxyDialer(c)
 

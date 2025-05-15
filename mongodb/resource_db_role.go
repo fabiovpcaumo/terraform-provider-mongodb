@@ -80,11 +80,8 @@ func resourceDatabaseRole() *schema.Resource {
 }
 
 func resourceDatabaseRoleCreate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var role = data.Get("name").(string)
 	var database = data.Get("database").(string)
 	var roleList []Role
@@ -114,11 +111,8 @@ func resourceDatabaseRoleCreate(ctx context.Context, data *schema.ResourceData, 
 }
 
 func resourceDatabaseRoleDelete(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var stateId = data.State().ID
 	roleName, database, err := resourceDatabaseRoleParseId(stateId)
 
@@ -137,11 +131,8 @@ func resourceDatabaseRoleDelete(ctx context.Context, data *schema.ResourceData, 
 }
 
 func resourceDatabaseRoleUpdate(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	var role = data.Get("name").(string)
 	var stateId = data.State().ID
 	_, database, err := resourceDatabaseRoleParseId(stateId)
@@ -179,11 +170,8 @@ func resourceDatabaseRoleUpdate(ctx context.Context, data *schema.ResourceData, 
 
 func resourceDatabaseRoleRead(ctx context.Context, data *schema.ResourceData, i interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var config = i.(*ClientConfig)
-	client, connectionError := MongoClientInit(config)
-	if connectionError != nil {
-		return diag.Errorf("Error connecting to database : %s ", connectionError)
-	}
+	meta := i.(*MongoProviderMeta)
+	client := meta.Client
 	stateID := data.State().ID
 	roleName, database, err := resourceDatabaseRoleParseId(stateID)
 	if err != nil {

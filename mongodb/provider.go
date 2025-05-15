@@ -14,13 +14,13 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"host": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MONGO_HOST", "127.0.0.1"),
 				Description: "The mongodb server address",
 			},
 			"port": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MONGO_PORT", "27017"),
 				Description: "The mongodb server port",
 			},
@@ -54,6 +54,12 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Default:     "",
 				Description: "The mongodb replica set",
+			},
+			"replica_set_hosts": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Comma separated list of hosts for the replica set",
 			},
 			"insecure_skip_verify": {
 				Type:        schema.TypeBool,
@@ -105,6 +111,25 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "Specifies the time in milliseconds to wait to find an available, suitable server to execute an operation.",
 			},
+			"read_preference": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "secondaryPreferred",
+				Description:  "Specifies the read preference mode to use for operations. The default is primary.",
+				ValidateFunc: validation.StringInSlice([]string{"primary", "primaryPreferred", "secondary", "secondaryPreferred", "nearest"}, false),
+			},
+			"max_pool_size": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     100,
+				Description: "Specifies the maximum number of connections in the connection pool. The default is 100.",
+			},
+			"max_connecting": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     2,
+				Description: "Specifies the maximum number of connections that can be in the process of being established concurrently. The default is 2.",
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"mongodb_db_user": resourceDatabaseUser(),
@@ -118,7 +143,7 @@ func Provider() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	clientConfig := ClientConfig{
+	clientConfig := &ClientConfig{
 		Host:                   d.Get("host").(string),
 		Port:                   d.Get("port").(string),
 		Username:               d.Get("username").(string),
@@ -126,6 +151,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		DB:                     d.Get("auth_database").(string),
 		Ssl:                    d.Get("ssl").(bool),
 		ReplicaSet:             d.Get("replica_set").(string),
+		ReplicaSetHosts:        d.Get("replica_set_hosts").(string),
 		Certificate:            d.Get("certificate").(string),
 		InsecureSkipVerify:     d.Get("insecure_skip_verify").(bool),
 		Direct:                 d.Get("direct").(bool),
@@ -134,8 +160,18 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		Timeout:                d.Get("timeout").(int),
 		ConnectTimeout:         d.Get("connect_timeout").(int),
 		ServerSelectionTimeout: d.Get("server_selection_timeout").(int),
+		ReadPreference:         d.Get("read_preference").(string),
+		MaxPoolSize:            d.Get("max_pool_size").(int),
+		MaxConnecting:          d.Get("max_connecting").(int),
 	}
 
-	return &clientConfig, diags
+	client, err := MongoClientInit(clientConfig)
+	if err != nil {
+		return nil, diag.Errorf("Failed to initialize MongoDB client: %s", err)
+	}
 
+	return &MongoProviderMeta{
+		Config: clientConfig,
+		Client: client,
+	}, diags
 }

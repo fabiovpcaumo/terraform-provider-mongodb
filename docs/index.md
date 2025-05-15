@@ -1,4 +1,3 @@
-
 # MongoDB Provider
 
 The MongoDB provider is used to interact with the resources supported by [MongoDB](https://www.mongodb.com/). The provider needs to be configured with the proper credentials before it can be used.
@@ -22,7 +21,6 @@ provider "mongodb" {
   retrywrites = false # default true
   direct = true // default false
   proxy = "socks5://myproxy:8080" // Optional
-  
 }
 ```
 
@@ -31,12 +29,9 @@ provider "mongodb" {
 ```hcl
 # Configure the MongoDB Provider
 provider "mongodb" {
-
-  insecure_skip_verify = true  # default false (set to true to ignore hostname verification) 
+  insecure_skip_verify = true  # default false (set to true to ignore hostname verification)
   # -> specify certificate path
   certificate = file(pathexpand("path/to/certificate/ca.pem"))
-
-  
 }
 ```
 
@@ -60,10 +55,8 @@ $  export MONGO_PWD="xxxx"
 $ terraform plan
 ```
 
-
-
-
 ## Certificate information :
+
 Specify certificate information either with a directory or directly with the content of the files for connecting to the Mongodb host via TLS.
 
 ```hcl
@@ -76,9 +69,9 @@ provider "mongodb" {
   ssl = true
   # -> specify either
   certificate = pathexpand("~/.mongodb/ca.pem")
-
   }
 ```
+
 ## Argument Reference
 
 In addition to [generic `provider`
@@ -93,7 +86,7 @@ arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
   provided, but it can also be sourced from the `MONGO_PORT`
   environment variable.
 
-* `certificate` - (Optional) Path to a directory with certificate files  for connecting to the Docker host via TLS. I. If the path is blank, the MONGODB_CERT will also be checked.
+* `certificate` - (Optional) Path to a directory with certificate files for connecting to the Docker host via TLS. I. If the path is blank, the MONGODB_CERT will also be checked.
 
 * `username ` - (Optional) Specifies a username with which to authenticate to the MongoDB database. It must be
   provided, but it can also be sourced from the `MONGO_USR`
@@ -109,3 +102,9 @@ arguments](https://www.terraform.io/docs/configuration/providers.html) (e.g.
 * `timeout` - (Optional) `default = 10000 ` Specifies the number of milliseconds that a single operation run on the Client can take before returning a timeout error.
 * `connect_timeout` - (Optional) `default = 30000 ` Specifies the time in milliseconds to attempt a connection before timing out.
 * `server_selection_timeout` - (Optional) Specifies the time in milliseconds to wait to find an available, suitable server to execute an operation.
+* `replica_set` - (Optional) Specifies the name of the replica set to connect to.
+* `replica_set_hosts` - (Optional) Comma separated list of hosts for the replica set.
+* `read_preference` - (Optional) Specifies the default read preference for the client (excluding tags). See [read preference](https://www.mongodb.com/docs/manual/core/read-preference/#std-label-read-preference) for more information.
+* `max_pool_size` - (Optional) Specifies the maximum number of clients or connections the driver can create in its connection pool.
+* `max_connecting` - (Optional) Specifies the maximum number of connections a driver's connection pool may be establishing concurrently.
+  Optional) Specifies the maximum number of connections a driver's connection pool may be establishing concurrently.
