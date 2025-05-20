@@ -32,8 +32,16 @@ func resourceDatabaseUser() *schema.Resource {
 			},
 			"password": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
+            "mechanisms": {
+                Type:     schema.TypeSet,
+                Optional: true,
+                MaxItems: 10,
+                Elem: &schema.Schema{
+                    Type:     schema.TypeString,
+                },
+            },
 			"role": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -92,6 +100,7 @@ func resourceDatabaseUserUpdate(ctx context.Context, data *schema.ResourceData, 
 	var userName = data.Get("name").(string)
 	var database = data.Get("auth_database").(string)
 	var userPassword = data.Get("password").(string)
+	var mechanisms = data.Get("mechanisms").(*schema.Set).List()
 
 	adminDB := client.Database(database)
 
@@ -100,9 +109,15 @@ func resourceDatabaseUserUpdate(ctx context.Context, data *schema.ResourceData, 
 		return diag.Errorf("%s", result.Err())
 	}
 	var roleList []Role
+	var mechanismsList []string
+	mechanismsMapErr := mapstructure.Decode(mechanisms, &mechanismsList)
+    if mechanismsMapErr != nil {
+        return diag.Errorf("Error decoding map : %s ", mechanismsMapErr)
+    }
 	var user = DbUser{
 		Name:     userName,
 		Password: userPassword,
+		Mechanisms: mechanismsList,
 	}
 	roles := data.Get("role").(*schema.Set).List()
 	roleMapErr := mapstructure.Decode(roles, &roleList)
@@ -129,6 +144,7 @@ func resourceDatabaseUserRead(ctx context.Context, data *schema.ResourceData, i 
 		return diag.Errorf("%s", err)
 	}
 	result, decodeError := getUser(client, username, database)
+	    diag.Errorf("found user: %s", result)
 	if decodeError != nil {
 		return diag.Errorf("Error decoding user : %s ", err)
 	}
@@ -165,10 +181,17 @@ func resourceDatabaseUserCreate(ctx context.Context, data *schema.ResourceData, 
 	var database = data.Get("auth_database").(string)
 	var userName = data.Get("name").(string)
 	var userPassword = data.Get("password").(string)
+	var mechanisms = data.Get("mechanisms").(*schema.Set).List()
 	var roleList []Role
+    var mechanismsList []string
+    mechanismsMapErr := mapstructure.Decode(mechanisms, &mechanismsList)
+    if mechanismsMapErr != nil {
+        return diag.Errorf("Error decoding map : %s ", mechanismsMapErr)
+    }
 	var user = DbUser{
 		Name:     userName,
 		Password: userPassword,
+		Mechanisms: mechanismsList,
 	}
 	roles := data.Get("role").(*schema.Set).List()
 	roleMapErr := mapstructure.Decode(roles, &roleList)
