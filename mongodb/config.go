@@ -189,15 +189,26 @@ func (resource Resource) String() string {
 }
 
 func createUser(client *mongo.Client, user DbUser, roles []Role, database string) error {
-	var result *mongo.SingleResult
-	if len(roles) != 0 {
-		result = client.Database(database).RunCommand(context.Background(), bson.D{{Key: "createUser", Value: user.Name},
-			{Key: "pwd", Value: user.Password}, {Key: "roles", Value: roles}})
-	} else {
-		result = client.Database(database).RunCommand(context.Background(), bson.D{{Key: "createUser", Value: user.Name},
-			{Key: "pwd", Value: user.Password}, {Key: "roles", Value: []bson.M{}}})
-	}
+	return writeUser(client, user, roles, database, "createUser")
+}
 
+func updateUser(client *mongo.Client, user DbUser, roles []Role, database string) error {
+	return writeUser(client, user, roles, database, "updateUser")
+}
+
+func writeUser(client *mongo.Client, user DbUser, roles []Role, database string, command string) error {
+	var result *mongo.SingleResult
+	var args = bson.D{}
+	args = append(args, bson.E{Key: command, Value: user.Name})
+	if user.Password != "" {
+		args = append(args, bson.E{Key: "pwd", Value: user.Password})
+	}
+	if len(roles) != 0 {
+		args = append(args, bson.E{Key: "roles", Value: roles})
+	} else {
+		args = append(args, bson.E{Key: "roles", Value: []bson.M{}})
+	}
+	result = client.Database(database).RunCommand(context.Background(), args)
 	if result.Err() != nil {
 		return result.Err()
 	}
